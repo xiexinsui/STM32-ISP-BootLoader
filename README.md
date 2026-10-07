@@ -3,6 +3,7 @@
 与 STM32 片内 ROM Bootloader（AN3155 协议）对接的串口下载上位机。纯 C + Win32 API 实现，
 单文件 exe 约 150 KB，静态链接，仅依赖系统 DLL。
 
+- 111222
 - 版本：v0.6
 - 运行平台：Windows 7 及以上（x64）
 - 仓库：https://gitee.com/xiexinsui/stm32-isp-bootloader.git
