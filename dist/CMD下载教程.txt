@@ -1,0 +1,183 @@
+========================================
+STM32 ISP Downloader  CMD 下载教程
+版本: v0.6
+========================================
+
+一、准备工作
+----------------------------------------
+1. 确认电脑已识别串口（设备管理器 → 端口）。
+   本控制板示例: USB-SERIAL CH340 (COM8)
+
+2. 确认控制板已接好 USB 串口线，并给板子供电。
+
+3. 打开 CMD，进入软件目录，例如:
+
+   cd /d E:\XXS\PCB\STM32F429IIT6-ControlBoard\BootloaderUpgrade\ISP_C\dist
+
+   目录下应有 ISP_Downloader_C.exe。
+
+
+二、命令格式（总览）
+----------------------------------------
+ISP_Downloader_C.exe --port COM8 --file 固件路径 [选项]
+
+常用选项:
+  --port / -p      串口号，如 COM8
+  --file / -f      固件文件路径（.hex 或 .bin）
+  --baud / -b      波特率，默认 115200
+  --mode / -m      DTR/RTS 进 Bootloader 模式（0~16）
+  --delay          步骤延时，单位 ms，默认 100
+  --bin-addr       BIN 烧录起始地址（HEX 不需要）
+  --verify         下载时逐页校验
+  --run            下载完成后运行
+  --no-run         下载完成后不运行
+  --opt-read       只连接并读取选项字节（不下载）
+  --help           显示帮助
+
+本控制板推荐:
+  COM 口: COM8（以设备管理器为准）
+  波特率: 115200
+  模式:   1
+  延时:   100
+
+
+三、下载 HEX 固件
+----------------------------------------
+HEX 自带地址，不需要 --bin-addr。
+
+完整示例:
+
+ISP_Downloader_C.exe --port COM8 --baud 115200 --mode 1 --delay 100 --file D:\XXS\Desktop\ELoad-Program.hex --verify --run
+
+说明:
+  --verify  写完后逐页回读校验
+  --run     下载完跳转运行
+
+
+四、下载 BIN 固件
+----------------------------------------
+BIN 没有地址信息，必须使用 --bin-addr。
+
+1) 从 HEX 转 BIN（可选，工具链或 objcopy）:
+
+   objcopy -I ihex -O binary ELoad-Program.hex ELoad-Program.bin
+
+2) 下载 BIN（App 在 Flash 起始 0x08000000 时）:
+
+ISP_Downloader_C.exe --port COM8 --baud 115200 --mode 1 --delay 100 --file D:\XXS\Desktop\ELoad-Program.bin --bin-addr 0x08000000 --verify --run
+
+若 App 烧录在 Bootloader 之后，例如 0x08010000，则:
+
+ISP_Downloader_C.exe --port COM8 --baud 115200 --mode 1 --delay 100 --file D:\path\App.bin --bin-addr 0x08010000 --verify --run
+
+注意: BIN 的 --bin-addr 必须与工程链接脚本中的实际地址一致，否则程序无法运行。
+
+
+五、其它实用命令
+----------------------------------------
+1) 查看帮助:
+
+   ISP_Downloader_C.exe --help
+
+2) 只读选项字节（调试、确认芯片/保护状态）:
+
+   ISP_Downloader_C.exe --port COM8 --mode 1 --opt-read
+
+3) 下载但不校验、不运行:
+
+   ISP_Downloader_C.exe --port COM8 --mode 1 --file D:\xx.hex --no-run
+
+4) 使用其它 Bootloader 模式（例如模式 2）:
+
+   ISP_Downloader_C.exe --port COM8 --mode 2 --delay 100 --file D:\xx.hex --verify --run
+
+   若模式 1 进不了 Bootloader（无 ACK/连接失败），再改 --mode 2 试。
+   本控制板已验证可用: 模式 1
+
+
+六、运行结果怎么看
+----------------------------------------
+1) CMD 窗口
+   - 显示操作摘要: 打开串口、识别芯片、擦除、进度、用时、成功/失败
+   - 不显示完整的协议 hex（避免刷屏）
+
+2) 日志文件
+   - 自动生成在 exe 同目录
+   - 命名示例:
+     ISP_CLI_v0.6_20260920_151639_190.log
+              ^版本   ^日期     ^时间  ^毫秒
+   - 文件开头含: 版本、编译日期、日志时间
+   - 文件内含完整协议收发，便于排查
+
+3) 退出码（适合产线脚本判断）
+
+   ISP_Downloader_C.exe ...
+   echo %ERRORLEVEL%
+
+   0 = 下载成功
+   1 = 失败（串口/固件/擦除/写入等）
+   2 = 参数错误（如缺少 --port 或 BIN 未指定 --bin-addr）
+
+
+七、成功日志示例（摘要）
+----------------------------------------
+版本: v0.6
+编译日期: 2026年9月20日 ...
+----------------------------------------
+[OK] 已打开串口 COM8, 波特率 115200 (8E1)
+[OK] 固件加载成功: ... (46572 字节), 0x08000000-0x0800B5EC
+进入 Bootloader，模式: 1 ...
+[OK] 识别芯片: STM32F10x HD (系列 F1), Flash后备: 256 KB
+[OK] Bootloader 连接成功
+[OK] 固件写入完成，共 182 页 (已逐页校验)
+[OK] 固件写入完成，下载用时 13.3 秒
+[OK] 已退出并准备运行
+[OK] Download finished. Exit=0
+
+
+八、常见问题
+----------------------------------------
+1) 提示「打开串口失败」
+   - 检查 COM 号是否正确
+   - 驱动是否安装（CH340）
+   - 串口是否被其它软件占用（先关 GUI/其它 ISP）
+
+2) 进不了 Bootloader / 同步失败
+   - 确认 --mode 与板上 DTR/RTS 接线一致
+   - 本板已验证模式 1 可用
+   - 可试 --mode 2，并适当增大 --delay
+
+3) BIN 下载后无法运行
+   - 核对 --bin-addr 是否与链接地址一致
+   - HEX 固件无需该参数
+
+4) 固件超出 Flash / 地址校验失败
+   - 确认文件是否属于当前芯片
+   - 确认 BIN 地址 + 文件长度 ≤ Flash 容量
+
+5) 提示参数不足
+   - 必须有 --port
+   - 下载时必须有 --file
+   - BIN 必须有 --bin-addr
+
+
+九、快速复制模板
+----------------------------------------
+【HEX 标准下载】
+
+ISP_Downloader_C.exe --port COM8 --baud 115200 --mode 1 --delay 100 --file D:\XXS\Desktop\ELoad-Program.hex --verify --run
+
+【BIN 从 0x08000000 下载】
+
+ISP_Downloader_C.exe --port COM8 --baud 115200 --mode 1 --delay 100 --file D:\XXS\Desktop\ELoad-Program.bin --bin-addr 0x08000000 --verify --run
+
+【产线脚本判断】
+
+ISP_Downloader_C.exe --port COM8 --mode 1 --file D:\fw\App.hex --verify --run
+if %ERRORLEVEL%==0 (echo PASS) else (echo FAIL)
+
+
+========================================
+说明: 本教程对应 ISP_Downloader_C v0.6
+      GUI 使用与协议能力与 Qt 版对齐
+========================================

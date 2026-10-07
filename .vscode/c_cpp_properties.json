@@ -1,0 +1,18 @@
+{
+    // 代码模型使用 Qt/MinGW-w64 GCC 13.1；若工具链路径不同请同步修改
+    "version": 4,
+    "configurations": [
+        {
+            "name": "Win32-MinGW",
+            "compilerPath": "D:/Qt/Tools/mingw1310_64/bin/gcc.exe",
+            "intelliSenseMode": "windows-gcc-x64",
+            "cStandard": "c99",
+            "includePath": ["${workspaceFolder}/src/**"],
+            "defines": ["_WIN32_WINNT=0x0601", "UNICODE", "_UNICODE"],
+            "browse": {
+                "path": ["${workspaceFolder}/src"],
+                "limitSymbolsToIncludedHeaders": false
+            }
+        }
+    ]
+}

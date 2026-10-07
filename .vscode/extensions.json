@@ -1,0 +1,7 @@
+{
+    // 打开工程时 VS Code 会提示安装这些推荐插件
+    "recommendations": [
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools"
+    ]
+}

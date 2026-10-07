@@ -1,0 +1,35 @@
+﻿#include <winver.h>
+
+#ifndef RT_MANIFEST
+#define RT_MANIFEST 24
+#endif
+
+1 RT_MANIFEST "app.manifest"
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 0,6,0,0
+ PRODUCTVERSION 0,6,0,0
+ FILEFLAGSMASK 0x3fL
+ FILEFLAGS 0x0L
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "080404b0"
+        BEGIN
+            VALUE "CompanyName", "ISP Project"
+            VALUE "FileDescription", "STM32 ISP Downloader"
+            VALUE "FileVersion", "0.6.0.0"
+            VALUE "InternalName", "ISP_Downloader_C"
+            VALUE "OriginalFilename", "ISP_Downloader_C.exe"
+            VALUE "ProductName", "STM32 ISP Downloader"
+            VALUE "ProductVersion", "0.6.0.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x804, 1200
+    END
+END

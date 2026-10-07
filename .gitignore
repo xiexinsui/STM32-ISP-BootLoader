@@ -1,0 +1,7 @@
+# 构建目录
+build/
+build-debug/
+
+# 构建产物（保留 dist/CMD下载教程.txt 文档）
+dist/*.exe
+dist/*.log

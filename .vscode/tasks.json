@@ -1,0 +1,93 @@
+{
+    // 依赖本机 Qt Tools 下的工具链；若安装路径不同，请同步修改下面三处路径
+    "windows": {
+        "options": {
+            "env": {
+                "PATH": "D:/Qt/Tools/CMake_64/bin;D:/Qt/Tools/Ninja;D:/Qt/Tools/mingw1310_64/bin;${env:PATH}"
+            }
+        }
+    },
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "CMake Configure (Release)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "-B", "build",
+                "-G", "Ninja",
+                "-DCMAKE_BUILD_TYPE=Release",
+                "-DCMAKE_C_COMPILER=D:/Qt/Tools/mingw1310_64/bin/gcc.exe",
+                "-DCMAKE_MAKE_PROGRAM=D:/Qt/Tools/Ninja/ninja.exe"
+            ],
+            "options": { "cwd": "${workspaceFolder}" },
+            "problemMatcher": []
+        },
+        {
+            "label": "Build (Release)",
+            "type": "shell",
+            "command": "cmake",
+            "args": ["--build", "build"],
+            "options": { "cwd": "${workspaceFolder}" },
+            "group": { "kind": "build", "isDefault": true },
+            "dependsOn": "CMake Configure (Release)",
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "CMake Configure (Debug)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "-B", "build-debug",
+                "-G", "Ninja",
+                "-DCMAKE_BUILD_TYPE=Debug",
+                "-DCMAKE_C_COMPILER=D:/Qt/Tools/mingw1310_64/bin/gcc.exe",
+                "-DCMAKE_MAKE_PROGRAM=D:/Qt/Tools/Ninja/ninja.exe"
+            ],
+            "options": { "cwd": "${workspaceFolder}" },
+            "problemMatcher": []
+        },
+        {
+            "label": "Build (Debug)",
+            "type": "shell",
+            "command": "cmake",
+            "args": ["--build", "build-debug"],
+            "options": { "cwd": "${workspaceFolder}" },
+            "group": "build",
+            "dependsOn": "CMake Configure (Debug)",
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "Rebuild (Release)",
+            "type": "shell",
+            "command": "cmake",
+            "args": ["--build", "build", "--clean-first"],
+            "options": { "cwd": "${workspaceFolder}" },
+            "group": "build",
+            "dependsOn": "CMake Configure (Release)",
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "Clean (Release)",
+            "type": "shell",
+            "command": "cmake",
+            "args": ["--build", "build", "--target", "clean"],
+            "options": { "cwd": "${workspaceFolder}" },
+            "problemMatcher": []
+        },
+        {
+            "label": "Upload to Gitee (提交并推送)",
+            "type": "shell",
+            "command": "git add -A; git commit -m \"${input:commitMsg}\"; git push",
+            "options": { "cwd": "${workspaceFolder}" },
+            "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "commitMsg",
+            "type": "promptString",
+            "description": "提交说明（commit message）"
+        }
+    ]
+}
