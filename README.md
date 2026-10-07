@@ -204,14 +204,16 @@ cmake --build build
 - **其他任务**：Rebuild (Release) / Clean (Release) / Build (Debug)，在终端 → 运行任务中可选
 - 智能提示/跳转由 cpptools 提供；推荐安装插件 cpptools、cmake-tools
 
-## 五、上传到 Gitee
+## 五、上传到 Gitee 与 GitHub
 
-远程仓库：`https://gitee.com/xiexinsui/stm32-isp-bootloader.git`（账号 xiexinsui / 蛙_Xxs），
-Git 凭据已存于 Windows 凭据管理器，推送无需重复登录。
+两个远程仓库同时维护，Git 凭据均已存于 Windows 凭据管理器，推送无需重复登录：
 
-**日常上传**：VS Code 菜单 终端 → 运行任务 → **Upload to Gitee (提交并推送)**，
-输入提交说明即可自动完成 `git add -A` + `git commit` + `git push`；
-也可手动：`git add -A && git commit -m "说明" && git push`
+- Gitee：`origin` → https://gitee.com/xiexinsui/stm32-isp-bootloader.git
+- GitHub：`github` → https://github.com/xiexinsui/STM32-ISP-BootLoader.git
+
+**日常上传**：VS Code 菜单 终端 → 运行任务 → **Upload to Gitee & GitHub (提交并推送)**，
+输入提交说明即可自动完成 `git add -A` + `git commit` + 推送到两个仓库；
+也可手动：`git add -A && git commit -m "说明" && git push && git push github master`
 
 ## 六、源码结构（src/）
 

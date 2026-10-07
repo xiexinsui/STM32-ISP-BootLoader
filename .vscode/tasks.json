@@ -76,9 +76,9 @@
             "problemMatcher": []
         },
         {
-            "label": "Upload to Gitee (提交并推送)",
+            "label": "Upload to Gitee & GitHub (提交并推送)",
             "type": "shell",
-            "command": "git add -A; git commit -m \"${input:commitMsg}\"; git push",
+            "command": "git add -A; git commit -m \"${input:commitMsg}\"; git push; git push github master",
             "options": { "cwd": "${workspaceFolder}" },
             "problemMatcher": []
         }
