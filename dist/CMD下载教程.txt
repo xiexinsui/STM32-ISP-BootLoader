@@ -29,6 +29,7 @@ ISP_Downloader_C.exe --port COM8 --file 固件路径 [选项]
   --delay          步骤延时，单位 ms，默认 100
   --bin-addr       BIN 烧录起始地址（HEX 不需要）
   --verify         下载时逐页校验
+  --no-verify      下载时不逐页校验
   --run            下载完成后运行
   --no-run         下载完成后不运行
   --opt-read       只连接并读取选项字节（不下载）
@@ -85,7 +86,7 @@ ISP_Downloader_C.exe --port COM8 --baud 115200 --mode 1 --delay 100 --file D:\pa
 
 3) 下载但不校验、不运行:
 
-   ISP_Downloader_C.exe --port COM8 --mode 1 --file D:\xx.hex --no-run
+   ISP_Downloader_C.exe --port COM8 --mode 1 --file D:\xx.hex --no-verify --no-run
 
 4) 使用其它 Bootloader 模式（例如模式 2）:
 

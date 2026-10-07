@@ -201,6 +201,8 @@ bool isp_cli_run(LPSTR cmd_line)
             if (next_tok(&p, val, sizeof(val))) bin_addr = (uint32_t)strtoul(val, NULL, 0);
         } else if (arg_match(tok, "--verify")) {
             verify = 1;
+        } else if (arg_match(tok, "--no-verify")) {
+            verify = 0;
         } else if (arg_match(tok, "--run")) {
             run_after = 1;
         } else if (arg_match(tok, "--no-run")) {
@@ -217,6 +219,7 @@ bool isp_cli_run(LPSTR cmd_line)
                 "  --mode/-m   DTR/RTS 模式 0-16\r\n"
                 "  --delay     步骤延时 ms\r\n"
                 "  --verify    下载时逐页校验\r\n"
+                "  --no-verify 下载时不逐页校验\r\n"
                 "  --run       下载后运行\r\n"
                 "  --no-run    下载后不运行\r\n"
                 "  --bin-addr  BIN 起始地址 (默认 0x08000000)\r\n"
