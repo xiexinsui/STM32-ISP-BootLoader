@@ -236,5 +236,5 @@ cmake --build build
 | `chipdb.c` | 芯片数据库（PID/Flash 容量/选项字节地址） |
 | `isp_cli.c` | 产线命令行模式 |
 | `isp_config.c` / `isp_logname.c` / `log.c` | 默认配置、日志命名、日志分级 |
-| 测试 |
+| 测试 | 1122 |
  
