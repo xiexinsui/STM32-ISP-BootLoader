@@ -19,14 +19,8 @@ CMake 3.30 + MinGW-w64 GCC 13.1 + Ninja；若安装路径不同，需同步修�
 - 智能提示/跳转由 cpptools 按 `c_cpp_properties.json` 提供；推荐安装插件 cpptools、cmake-tools（打开工程时会提示）
 
 ## 上传到 Gitee
-远程仓库已配置为 `https://gitee.com/xiexinsui/ISP_C_V1.3.git`（账号 xiexinsui / 蛙_Xxs），
+远程仓库：`https://gitee.com/xiexinsui/stm32-isp-bootloader.git`（账号 xiexinsui / 蛙_Xxs），
 Git 凭据已存于 Windows 凭据管理器，推送无需重复登录。
-
-**首次上传**：若 Gitee 上还没有该仓库，先到 gitee.com「新建仓库」，名称填 `ISP_C_V1.3`、
-设为**私有**、**不要勾选任何初始化选项**（README/.gitignore/许可证），然后执行：
-```
-git push -u origin master
-```
 
 **日常上传**：VS Code 菜单 终端 → 运行任务 → **Upload to Gitee (提交并推送)**，
 输入提交说明即可自动完成 `git add -A` + `git commit` + `git push`；
