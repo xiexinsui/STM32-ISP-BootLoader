@@ -186,7 +186,6 @@ static LRESULT CALLBACK ob_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
             uint8_t data[16];
             int f1 = (logic_option_bytes_addr() == 0x1FFFF800u);
             /* F4 OPTCR 区非「值+反码」结构，写入时不强制反码校验 */
-            int f4 = (logic_option_bytes_addr() == 0x1FFFC000u);
             for (int i = 0; i < 8; i++) {
                 uint8_t v, c;
                 if (!parse_hex_byte(g_val[i], &v) || !parse_hex_byte(g_comp[i], &c)) {

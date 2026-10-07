@@ -40,7 +40,7 @@ static HWND g_hGrpSerial, g_hGrpBl, g_hGrpChip, g_hGrpFw, g_hGrpAct, g_hGrpLog;
 static HFONT g_font;
 static HFONT g_log_font;
 static HBRUSH g_brGreen, g_brRed, g_brGray, g_brWhite;
-static HBRUSH g_brLightGreen, g_brLightRed, g_brFace;
+static HBRUSH g_brLightGreen, g_brLightRed;
 static volatile LONG g_busy;
 static volatile LONG g_cancel_flag;
 static int g_last_w, g_last_h;
@@ -130,24 +130,7 @@ void ui_resnap_tools(void)
     ui_hexlog_resnap();
 }
 
-/* ACP/GBK → UTF-16，RichEdit 用宽字符追加，避免黑块/乱码 */
-static void utf16_from_acp(const char *src, wchar_t *dst, int dst_count)
-{
-    if (!src || !dst || dst_count <= 0) return;
-    dst[0] = 0;
-    int n = MultiByteToWideChar(CP_ACP, 0, src, -1, dst, dst_count);
-    if (n <= 0) {
-        /* 回退 UTF-8 */
-        n = MultiByteToWideChar(CP_UTF8, 0, src, -1, dst, dst_count);
-        if (n <= 0) {
-            /* 最后逐字节复制可打印 ASCII */
-            int i = 0;
-            for (; src[i] && i < dst_count - 1; i++)
-                dst[i] = (unsigned char)src[i];
-            dst[i] = 0;
-        }
-    }
-}
+/* ACP/GBK → UTF-16 转换已并入日志追加流程；此处不再单独提供 */
 
 static const int BAUDS[] = { 115200, 9600, 14400, 19200, 28800, 38400, 57600, 230400, 460800 };
 char g_pending_path[MAX_PATH];
@@ -449,16 +432,6 @@ void ui_refresh_ports(void)
 
 /* ── 控件辅助 ── */
 
-static void pump_messages(void)
-{
-    MSG msg;
-    while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-        if (msg.message == WM_QUIT) break;
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
-}
-
 static void set_busy(int busy)
 {
     InterlockedExchange(&g_busy, busy);
@@ -483,11 +456,6 @@ static HWND mk(HWND parent, const char *cls, const char *text, DWORD style,
                              GetModuleHandle(NULL), NULL);
     if (h && g_font) SendMessage(h, WM_SETFONT, (WPARAM)g_font, TRUE);
     return h;
-}
-
-static void apply_font(HWND root)
-{
-    (void)root;
 }
 
 /* MSVC/MinGW C 下不能用 lambda — 用普通回调 */
@@ -948,7 +916,6 @@ static void layout_create(HWND hwnd)
     ui_refresh_ports();
     ui_update_serial_ui();
     ui_update_chip_info();
-    EnsureWindow_fits_client:
     ensure_window_fits_client(hwnd);
     {
         RECT crc;
@@ -1243,12 +1210,8 @@ static LRESULT CALLBACK main_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
         return 1;
     }
     case WM_SETTINGCHANGE:
-        if (lp) {
-            const char *area = (const char *)lp;
-            if (strcmp(area, "ImmersiveColorSet") == 0 ||
-                strcmp(area, "WindowsThemeElement") == 0)
-                /* 浅色固定，无需跟随系统 */;
-        }
+        /* 主题固定浅色；如需跟随系统深/浅色，可在此调用 ui_theme_reload() */
+        (void)lp;
         return 0;
     case WM_APP_LOG: {
         ui_log_item_t *it = (ui_log_item_t *)lp;

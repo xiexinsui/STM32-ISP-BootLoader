@@ -192,7 +192,10 @@ bool logic_load_firmware(const char *path, uint32_t bin_start, char *err, int er
         snprintf(err, err_len, "不支持的文件格式");
         return false;
     }
-    if (!ok) return false;
+    if (!ok) {
+        fw_image_free(&g_fw);
+        return false;
+    }
 
     uint32_t mn = 0, mx = 0;
     int total = 0;

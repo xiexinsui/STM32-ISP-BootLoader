@@ -236,8 +236,10 @@ int serial_list_ports_info(serial_port_item_t *items, int max_ports)
                 parse_com_from_text(friendly, port, sizeof(port));
             if (port[0] == 0)
                 parse_com_from_text(detail->DevicePath, port, sizeof(port));
-            if (port[0] == 0)
+            if (port[0] == 0) {
+                free(detail);
                 continue;
+            }
 
             snprintf(items[count].port, sizeof(items[count].port), "%s", port);
             /* 描述：尽量与设备管理器「端口」下的名称一致

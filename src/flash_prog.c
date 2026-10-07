@@ -103,11 +103,14 @@ bool flash_write_image(an3155_t *a, const fw_image_t *img, bool per_page_verify,
             }
             int chunk = seg->size - offset;
             if (chunk > PAGE_SIZE) chunk = PAGE_SIZE;
+            /* AN3155 写入长度需为 4 的倍数：末块按 4 字节对齐补 0xFF，
+               不再整块补满 256，避免固件顶到 Flash 末尾时越界写入 */
+            int wlen = (chunk + 3) & ~3;
             memset(page, 0xFF, PAGE_SIZE);
             memcpy(page, seg->data + offset, chunk);
             uint32_t addr = seg->start_address + (uint32_t)offset;
 
-            if (!an3155_write_memory(a, addr, page, PAGE_SIZE)) {
+            if (!an3155_write_memory(a, addr, page, wlen)) {
                 log_msg(LOG_ERROR, "写入失败: 地址 0x%08X", (unsigned)addr);
                 return false;
             }
@@ -115,12 +118,12 @@ bool flash_write_image(an3155_t *a, const fw_image_t *img, bool per_page_verify,
 
             if (per_page_verify) {
                 uint8_t rb[PAGE_SIZE];
-                if (!an3155_read_memory(a, addr, PAGE_SIZE, rb)) {
+                if (!an3155_read_memory(a, addr, wlen, rb)) {
                     log_msg(LOG_ERROR, "逐页校验读取失败: 0x%08X", (unsigned)addr);
                     return false;
                 }
-                if (memcmp(page, rb, PAGE_SIZE) != 0) {
-                    for (int i = 0; i < PAGE_SIZE; i++) {
+                if (memcmp(page, rb, wlen) != 0) {
+                    for (int i = 0; i < wlen; i++) {
                         if (page[i] != rb[i]) {
                             log_msg(LOG_ERROR,
                                     "逐页校验错误: 地址 0x%08X, 期望 0x%02X, 实际 0x%02X",

@@ -8,7 +8,7 @@
             "intelliSenseMode": "windows-gcc-x64",
             "cStandard": "c99",
             "includePath": ["${workspaceFolder}/src/**"],
-            "defines": ["_WIN32_WINNT=0x0601", "UNICODE", "_UNICODE"],
+            "defines": ["_WIN32_WINNT=0x0601"],
             "browse": {
                 "path": ["${workspaceFolder}/src"],
                 "limitSymbolsToIncludedHeaders": false

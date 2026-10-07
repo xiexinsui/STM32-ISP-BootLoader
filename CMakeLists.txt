@@ -44,6 +44,7 @@ if(WIN32)
     if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
         target_compile_options(ISP_Downloader_C PRIVATE
             -finput-charset=UTF-8 -fexec-charset=GBK
+            -Wall -Wextra
             -ffunction-sections -fdata-sections
         )
         # 体积优化与符号剥离仅 Release；Debug 需保留符号供 gdb 调试

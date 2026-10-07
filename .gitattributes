@@ -1,0 +1,2 @@
+# 统一换行行为：仓库内存 LF，Windows 检出为 CRLF
+* text=auto

@@ -8,6 +8,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef ISP_VERSION_STR
+#define ISP_VERSION_STR "0.6"
+#endif
+
 static FILE *g_cli_log;
 static volatile LONG g_cli_cancel;
 static int g_cli_console;
@@ -80,14 +84,29 @@ static void cli_progress(int pct, const char *st)
         fflush(g_cli_log);
     }
 }
-static void strip_quotes(char *s)
+/* 取下一个参数：按空白分词；值可用英文双引号包裹以支持含空格路径（引号会被剥除） */
+static bool next_tok(char **pp, char *out, int outlen)
 {
-    if (!s || !*s) return;
-    size_t n = strlen(s);
-    if (n >= 2 && s[0] == '"' && s[n - 1] == '"') {
-        memmove(s, s + 1, n - 2);
-        s[n - 2] = 0;
+    char *p = *pp;
+    while (*p == ' ' || *p == '\t') p++;
+    if (!*p) { *pp = p; return false; }
+    int o = 0;
+    if (*p == '"') {
+        p++;
+        while (*p && *p != '"') {
+            if (o < outlen - 1) out[o++] = *p;
+            p++;
+        }
+        if (*p == '"') p++;
+    } else {
+        while (*p && *p != ' ' && *p != '\t') {
+            if (o < outlen - 1) out[o++] = *p;
+            p++;
+        }
     }
+    out[o] = 0;
+    *pp = p;
+    return true;
 }
 
 static int arg_match(const char *a, const char *name)
@@ -98,12 +117,15 @@ static int arg_match(const char *a, const char *name)
 static bool has_cli_args(LPSTR cmd)
 {
     if (!cmd || !*cmd) return false;
-    /* 含 --help/--port/--file 等任一 CLI 参数即进入命令行模式 */
-    return strstr(cmd, "--") != NULL ||
-           strstr(cmd, "-p ") != NULL ||
-           strstr(cmd, "-f ") != NULL ||
-           strstr(cmd, "-b ") != NULL ||
-           strstr(cmd, "-m ") != NULL;
+    /* 含任一 CLI 参数即进入命令行模式：长选项（--xxx）或短选项 -p/-f/-b/-m
+       （后接空格、引号或直接连值，如 -pCOM8） */
+    if (strstr(cmd, "--") != NULL) return true;
+    for (const char *q = cmd; (q = strchr(q, '-')) != NULL; q++) {
+        char k = q[1];
+        if ((k == 'p' || k == 'f' || k == 'b' || k == 'm') && q[2] != '-')
+            return true;
+    }
+    return false;
 }
 
 bool isp_cli_run(LPSTR cmd_line)
@@ -128,9 +150,6 @@ bool isp_cli_run(LPSTR cmd_line)
         char stamp[32];
         char hdr[256];
         isp_log_stamp(stamp, sizeof(stamp));
-#ifndef ISP_VERSION_STR
-#define ISP_VERSION_STR "0.6"
-#endif
         snprintf(log_path, sizeof(log_path), "%sISP_CLI_v%s_%s.log",
                  exe_dir, ISP_VERSION_STR, stamp);
         g_cli_log = fopen(log_path, "w");
@@ -154,34 +173,32 @@ bool isp_cli_run(LPSTR cmd_line)
     isp_cfg_t cfg;
     isp_cfg_load(&cfg);
 
-    /* 简易解析：支持空格分隔的 key value */
+    /* 参数解析：key value 空格分隔；值可加双引号支持空格路径；短选项支持连值（如 -pCOM8） */
     char buf[1024];
     snprintf(buf, sizeof(buf), "%s", cmd_line ? cmd_line : "");
+    char tok[MAX_PATH], val[MAX_PATH];
     char *p = buf;
-    while (*p) {
-        while (*p == ' ' || *p == '\t') p++;
-        if (!*p) break;
-        char *tok = p;
-        while (*p && *p != ' ' && *p != '\t') p++;
-        if (*p) { *p = 0; p++; }
+    while (next_tok(&p, tok, sizeof(tok))) {
+        char k = (tok[0] == '-' && tok[1]) ? tok[1] : 0;
+        if (k && tok[2]) {
+            /* 短选项连值形式：-pCOM8 */
+            if (k == 'p') { snprintf(port, sizeof(port), "%s", tok + 2); continue; }
+            if (k == 'f') { snprintf(file, sizeof(file), "%s", tok + 2); continue; }
+            if (k == 'b') { baud = atoi(tok + 2); continue; }
+            if (k == 'm') { mode = atoi(tok + 2); continue; }
+        }
         if (arg_match(tok, "--port") || arg_match(tok, "-p")) {
-            while (*p == ' ' || *p == '\t') p++;
-            if (*p) { char *v = p; while (*p && *p != ' ' && *p != '\t') p++; if (*p) { *p=0; p++; } snprintf(port, sizeof(port), "%s", v); }
+            if (next_tok(&p, val, sizeof(val))) snprintf(port, sizeof(port), "%s", val);
         } else if (arg_match(tok, "--file") || arg_match(tok, "-f")) {
-            while (*p == ' ' || *p == '\t') p++;
-            if (*p) { char *v = p; while (*p && *p != ' ' && *p != '\t') p++; if (*p) { *p=0; p++; } snprintf(file, sizeof(file), "%s", v); }
+            if (next_tok(&p, val, sizeof(val))) snprintf(file, sizeof(file), "%s", val);
         } else if (arg_match(tok, "--baud") || arg_match(tok, "-b")) {
-            while (*p == ' ' || *p == '\t') p++;
-            if (*p) { char *v = p; while (*p && *p != ' ' && *p != '\t') p++; if (*p) { *p=0; p++; } baud = atoi(v); }
+            if (next_tok(&p, val, sizeof(val))) baud = atoi(val);
         } else if (arg_match(tok, "--mode") || arg_match(tok, "-m")) {
-            while (*p == ' ' || *p == '\t') p++;
-            if (*p) { char *v = p; while (*p && *p != ' ' && *p != '\t') p++; if (*p) { *p=0; p++; } mode = atoi(v); }
+            if (next_tok(&p, val, sizeof(val))) mode = atoi(val);
         } else if (arg_match(tok, "--delay")) {
-            while (*p == ' ' || *p == '\t') p++;
-            if (*p) { char *v = p; while (*p && *p != ' ' && *p != '\t') p++; if (*p) { *p=0; p++; } delay = atoi(v); }
+            if (next_tok(&p, val, sizeof(val))) delay = atoi(val);
         } else if (arg_match(tok, "--bin-addr")) {
-            while (*p == ' ' || *p == '\t') p++;
-            if (*p) { char *v = p; while (*p && *p != ' ' && *p != '\t') p++; if (*p) { *p=0; p++; } bin_addr = (uint32_t)strtoul(v, NULL, 0); }
+            if (next_tok(&p, val, sizeof(val))) bin_addr = (uint32_t)strtoul(val, NULL, 0);
         } else if (arg_match(tok, "--verify")) {
             verify = 1;
         } else if (arg_match(tok, "--run")) {
@@ -191,19 +208,22 @@ bool isp_cli_run(LPSTR cmd_line)
         } else if (arg_match(tok, "--opt-read")) {
             opt_read = 1;
         } else if (arg_match(tok, "--help") || arg_match(tok, "-h")) {
+            char help[1200];
+            snprintf(help, sizeof(help),
+                "用法: ISP_Downloader_C.exe --port COM8 --file firmware.hex [选项]\r\n"
+                "  --port/-p   串口\r\n"
+                "  --file/-f   HEX/BIN 路径 (含空格用英文双引号包裹)\r\n"
+                "  --baud/-b   波特率 (默认配置或115200)\r\n"
+                "  --mode/-m   DTR/RTS 模式 0-16\r\n"
+                "  --delay     步骤延时 ms\r\n"
+                "  --verify    下载时逐页校验\r\n"
+                "  --run       下载后运行\r\n"
+                "  --no-run    下载后不运行\r\n"
+                "  --bin-addr  BIN 起始地址 (默认 0x08000000)\r\n"
+                "日志: %s\r\n", log_path);
+            cli_print(help);
             if (g_cli_log) {
-                fprintf(g_cli_log,
-                    "用法: ISP_Downloader_C.exe --port COM8 --file firmware.hex [选项]\n"
-                    "  --port/-p   串口\n"
-                    "  --file/-f   HEX/BIN 路径\n"
-                    "  --baud/-b   波特率 (默认配置或115200)\n"
-                    "  --mode/-m   DTR/RTS 模式 0-16\n"
-                    "  --delay     步骤延时 ms\n"
-                    "  --verify    下载时逐页校验\n"
-                    "  --run       下载后运行\n"
-                    "  --no-run    下载后不运行\n"
-                    "  --bin-addr  BIN 起始地址 (默认 0x08000000)\n"
-                    "日志: %s\n", log_path);
+                fputs(help, g_cli_log);
                 fclose(g_cli_log);
                 g_cli_log = NULL;
             }
@@ -214,8 +234,6 @@ bool isp_cli_run(LPSTR cmd_line)
 
     if (port[0] == 0) snprintf(port, sizeof(port), "%s", cfg.port);
     if (file[0] == 0) snprintf(file, sizeof(file), "%s", cfg.file);
-    strip_quotes(port);
-    strip_quotes(file);
     if (baud <= 0) baud = cfg.baud > 0 ? cfg.baud : 115200;
     if (mode < 0) mode = cfg.mode;
     if (delay <= 0) delay = cfg.delay_ms;
@@ -223,7 +241,7 @@ bool isp_cli_run(LPSTR cmd_line)
     if (run_after < 0) run_after = cfg.run_after;
 
     if (g_cli_log) {
-        fprintf(g_cli_log, "STM32 ISP Downloader CLI v0.6\n");
+        fprintf(g_cli_log, "STM32 ISP CLI v" ISP_VERSION_STR "\n");
         fprintf(g_cli_log, "Port=%s Baud=%d Mode=%d Delay=%d\n", port, baud, mode, delay);
         fprintf(g_cli_log, "File=%s verify=%d run=%d\n", file, verify, run_after);
         fflush(g_cli_log);
@@ -231,8 +249,8 @@ bool isp_cli_run(LPSTR cmd_line)
     {
         char hdr[256];
         snprintf(hdr, sizeof(hdr),
-                 "STM32 ISP CLI v0.6  Port=%s Baud=%d Mode=%d Delay=%d\r\nFile=%s verify=%d run=%d\r\n",
-                 port, baud, mode, delay, file[0] ? file : "(none)",
+                 "STM32 ISP CLI v%s  Port=%s Baud=%d Mode=%d Delay=%d\r\nFile=%s verify=%d run=%d\r\n",
+                 ISP_VERSION_STR, port, baud, mode, delay, file[0] ? file : "(none)",
                  verify < 0 ? 1 : verify, run_after < 0 ? 1 : run_after);
         cli_print(hdr);
     }
