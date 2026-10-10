@@ -1,5 +1,4 @@
 {
-    // 依赖本机 Qt Tools 下的工具链；若安装路径不同，请同步修改下面三处路径
     "windows": {
         "options": {
             "env": {
@@ -14,22 +13,34 @@
             "type": "shell",
             "command": "cmake",
             "args": [
-                "-B", "build",
-                "-G", "Ninja",
+                "-B",
+                "build",
+                "-G",
+                "Ninja",
                 "-DCMAKE_BUILD_TYPE=Release",
                 "-DCMAKE_C_COMPILER=D:/Qt/Tools/mingw1310_64/bin/gcc.exe",
                 "-DCMAKE_MAKE_PROGRAM=D:/Qt/Tools/Ninja/ninja.exe"
             ],
-            "options": { "cwd": "${workspaceFolder}" },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
             "problemMatcher": []
         },
         {
             "label": "Build (Release)",
             "type": "shell",
             "command": "cmake",
-            "args": ["--build", "build"],
-            "options": { "cwd": "${workspaceFolder}" },
-            "group": { "kind": "build", "isDefault": true },
+            "args": [
+                "--build",
+                "build"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
             "dependsOn": "CMake Configure (Release)",
             "problemMatcher": "$gcc"
         },
@@ -38,21 +49,30 @@
             "type": "shell",
             "command": "cmake",
             "args": [
-                "-B", "build-debug",
-                "-G", "Ninja",
+                "-B",
+                "build-debug",
+                "-G",
+                "Ninja",
                 "-DCMAKE_BUILD_TYPE=Debug",
                 "-DCMAKE_C_COMPILER=D:/Qt/Tools/mingw1310_64/bin/gcc.exe",
                 "-DCMAKE_MAKE_PROGRAM=D:/Qt/Tools/Ninja/ninja.exe"
             ],
-            "options": { "cwd": "${workspaceFolder}" },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
             "problemMatcher": []
         },
         {
             "label": "Build (Debug)",
             "type": "shell",
             "command": "cmake",
-            "args": ["--build", "build-debug"],
-            "options": { "cwd": "${workspaceFolder}" },
+            "args": [
+                "--build",
+                "build-debug"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
             "group": "build",
             "dependsOn": "CMake Configure (Debug)",
             "problemMatcher": "$gcc"
@@ -61,8 +81,14 @@
             "label": "Rebuild (Release)",
             "type": "shell",
             "command": "cmake",
-            "args": ["--build", "build", "--clean-first"],
-            "options": { "cwd": "${workspaceFolder}" },
+            "args": [
+                "--build",
+                "build",
+                "--clean-first"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
             "group": "build",
             "dependsOn": "CMake Configure (Release)",
             "problemMatcher": "$gcc"
@@ -71,16 +97,45 @@
             "label": "Clean (Release)",
             "type": "shell",
             "command": "cmake",
-            "args": ["--build", "build", "--target", "clean"],
-            "options": { "cwd": "${workspaceFolder}" },
+            "args": [
+                "--build",
+                "build",
+                "--target",
+                "clean"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
             "problemMatcher": []
         },
         {
             "label": "Upload to Gitee & GitHub (提交并推送)",
             "type": "shell",
             "command": "git add -A; git commit -m \"${input:commitMsg}\"; git push; git push github master",
-            "options": { "cwd": "${workspaceFolder}" },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
             "problemMatcher": []
+        },
+        {
+            "type": "cppbuild",
+            "label": "C/C++: gcc.exe 生成活动文件",
+            "command": "D:/Qt/Tools/mingw1310_64/bin/gcc.exe",
+            "args": [
+                "-fdiagnostics-color=always",
+                "-g",
+                "${file}",
+                "-o",
+                "${fileDirname}\\${fileBasenameNoExtension}.exe"
+            ],
+            "options": {
+                "cwd": "D:/Qt/Tools/mingw1310_64/bin"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build",
+            "detail": "单文件语法检查任务（仅编译当前文件、不含全项目链接）；整个项目编译请用默认任务 Build (Release)，勿设为默认。"
         }
     ],
     "inputs": [

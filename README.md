@@ -216,7 +216,12 @@ cmake --build build
 输入提交说明即可自动完成 `git add -A` + `git commit` + 推送到两个仓库；
 也可手动：`git add -A && git commit -m "说明" && git push && git push github master`
 
-## 六、源码结构（src/）
+## 六、网页版工具（WebISP/）
+
+仓库内另附一个独立的网页版串口烧录工具：`WebISP/index.html` 单文件（Web Serial API，
+Chrome/Edge 直接打开，无需构建与安装），说明见 `WebISP/README.md`。
+
+## 七、源码结构（src/）
 
 | 文件 | 职责 |
 |---|---|

@@ -132,7 +132,7 @@ void ui_resnap_tools(void)
 
 /* ACP/GBK → UTF-16 转换已并入日志追加流程；此处不再单独提供 */
 
-static const int BAUDS[] = { 115200, 9600, 14400, 19200, 28800, 38400, 57600, 230400, 460800 };
+static const int BAUDS[] = {9600, 14400, 19200, 28800, 38400, 57600, 115200, 230400, 460800};
 char g_pending_path[MAX_PATH];
 static void start_op(int op);
 static void ui_log_append_now(int level, const char *msg)

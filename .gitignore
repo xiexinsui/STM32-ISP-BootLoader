@@ -5,3 +5,6 @@ build-debug/
 # 构建产物（保留 dist/CMD下载教程.txt 文档）
 dist/*.exe
 dist/*.log
+
+# VS Code Python 扩展自动下载的运行时（勿入库）
+Python/
