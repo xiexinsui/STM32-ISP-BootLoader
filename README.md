@@ -1,11 +1,29 @@
-# STM32 ISP Downloader (C/Win32)
+# STM32 ISP 串口烧录工具集
 
-与 STM32 片内 ROM Bootloader（AN3155 协议）对接的串口下载上位机。纯 C + Win32 API 实现，
-单文件 exe 约 150 KB，静态链接，仅依赖系统 DLL。
+本仓库包含两款与 STM32 片内 ROM Bootloader（AN3155 协议）对接的串口烧录上位机：
 
-- 版本：v0.6
-- 运行平台：Windows 7 及以上（x64）
-- 仓库：https://gitee.com/xiexinsui/stm32-isp-bootloader.git
+| 工具 | 形态 | 位置 |
+|---|---|---|
+| **ISP_Downloader_C**（主） | 纯 C + Win32 单文件 exe，约 150 KB，静态链接仅依赖系统 DLL | `src/` + `dist/` |
+| **STM32 ISP Web 烧录器** | 单文件网页（Web Serial API），零依赖，深浅色自适应，中英双语 | `WebISP/` |
+
+- 版本：v0.6（C 版）/ v1.0（网页版）
+- 运行平台：C 版 Windows 7+（x64）；网页版 Chrome/Edge（Windows 与 Linux 桌面）
+- 仓库：https://gitee.com/xiexinsui/stm32-isp-bootloader.git （GitHub 同步维护）
+
+以下第一至五节为 C 版说明；网页版见第六节及其自带 `WebISP/README.md`。
+
+## 仓库结构
+
+```
+ISP_C_V1.3/
+├── CMakeLists.txt        C 版构建脚本
+├── src/                  C 版源码（35 个文件，约 5500 行）
+├── build/                Release 构建目录（git 忽略，可随时删除重建）
+├── dist/                 发布目录：ISP_Downloader_C.exe + CMD下载教程.txt
+├── WebISP/               网页版：index.html + README.md
+└── .vscode/              编译/调试/上传任务配置
+```
 
 ## 一、当前实现的功能
 
@@ -188,9 +206,13 @@ pause
 ## 三、构建
 
 ```bat
-cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release ^
+  -DCMAKE_C_COMPILER=D:/Qt/Tools/mingw1310_64/bin/gcc.exe ^
+  -DCMAKE_MAKE_PROGRAM=D:/Qt/Tools/Ninja/ninja.exe
 cmake --build build
 ```
+
+（若 `cmake`/`ninja`/`gcc` 已在 PATH 中，可省略后两个 `-D` 参数。）
 
 工具链：`D:/Qt/Tools` 下的 CMake 3.30 + MinGW-w64 GCC 13.1 + Ninja；路径不同请同步修改
 `.vscode/tasks.json`、`c_cpp_properties.json`、`settings.json`。
@@ -218,8 +240,17 @@ cmake --build build
 
 ## 六、网页版工具（WebISP/）
 
-仓库内另附一个独立的网页版串口烧录工具：`WebISP/index.html` 单文件（Web Serial API，
-Chrome/Edge 直接打开，无需构建与安装），说明见 `WebISP/README.md`。
+独立的网页版串口烧录工具：`WebISP/index.html` 单文件即全部程序（零依赖、无需构建与安装），
+浏览器通过 **Web Serial API** 直连串口。完整说明见 `WebISP/README.md`。
+
+- **功能**：串口 8E1 连接、DTR/RTS 模式 0–16 自动进 Bootloader、AN3155 全命令、
+  94 条芯片库 + 同 PID 消歧、HEX/BIN 一键下载（擦除→写入→逐页校验→运行）、
+  选项字节读写、整片 Flash 回读导出、调试面板、双日志窗口（可导出/清空）
+- **界面**：自动跟随系统深浅色；中/英文全覆盖切换；快捷键操作；全程可取消
+- **平台**：Chromium 系桌面浏览器（Chrome / Edge / Chromium / Brave），
+  Windows 与 Linux 均可（Linux 需 dialout 组权限，详见 WebISP/README.md）
+- **已知差异**：无产线 CLI 模式（网页无法命令行启动）；浏览器端口列表只显示
+  VID:PID 不显示 COM 号
 
 ## 七、源码结构（src/）
 
